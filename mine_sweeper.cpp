@@ -19,6 +19,7 @@ struct gamePlay {
 	int row;
 	int col;
 	int noOfMines;
+	int mineCounter;
 
 };
 
@@ -31,6 +32,7 @@ void calculateSurrounding( Board &b, gamePlay &g , int row, int col);
 void unCoverMines( Board &b, gamePlay &g );
 void unCover( Board &b, gamePlay &g, int row, int col );
 void getLocation( Board &b, gamePlay &g );
+int  Time ( gamePlay &g, int t );
 
 int main( ) {
 
@@ -41,7 +43,11 @@ int main( ) {
 
 	initBoard( b, g );
 	fillMines( b, g );
-	takeValue( b, g );
+
+	while(1)
+	{
+		takeValue( b, g );
+	}
 
 	while (!kbhit( ))
 	{
@@ -63,60 +69,46 @@ void initBoard( Board &b, gamePlay &g ) {
 	setcolor( BLUE );
 	settextjustify( 1, 2 );
 	settextstyle( 10, HORIZ_DIR, 2 );
-	outtextxy( 300, 250, "Enter Number of Rows" );
+	outtextxy( 280, 250, "Enter Number of Rows and Coloumns" );
 
 	rectangle(170,300,400,350);
 
+	kbhit();
 	takeInput[0] = getch();
-	/*takeInput[1] = getch();
 
-	if( takeInput[1] != 0 )
+	if( kbhit() )
 	{
+
+		takeInput[1] = getch();
 		b.rows = atoi(takeInput);
+
 	}
 	else
-		b.rows = takeInput[0] - 48;*/
+		b.rows = takeInput[0] - 48;
 
-	b.rows = takeInput[0] - 48;
-
-	settextjustify( 1, 2 );
-	settextstyle( 10, HORIZ_DIR, 2 );
-	outtextxy(280,315,itoa(b.rows,buffer,10));
-
-	delay( 300 );
-
-	cleardevice( );
-
-	// Take Columns from User
-	setcolor( RED );
-	settextjustify( 1, 2 );
-	settextstyle( 10, HORIZ_DIR, 2 );
-	outtextxy( 300, 250, "Enter Number of columns" );
-
-	rectangle(170,300,400,350);
-
-	takeInput[0] = getch();
-	/*takeInput[1] = getch();
-
-	if( takeInput[1] != '/0' )
+	if(b.rows > 12)
 	{
-		b.cols = atoi(takeInput);
+
+		initBoard( b, g );
+
 	}
 	else
-		b.cols = takeInput[0] - 48;*/
+	{
 
-	b.cols = takeInput[0] - 48;
-	
-	settextjustify( 1, 2 );
-	settextstyle( 10, HORIZ_DIR, 2 );
-	outtextxy(280,315,itoa(b.cols,buffer,10));
+		b.cols = b.rows;
 
-	delay( 300 );
+		settextjustify( 1, 2 );
+		settextstyle( 10, HORIZ_DIR, 2 );
+		outtextxy(280,315,itoa(b.rows,buffer,10));
 
-	cleardevice( );
+		delay( 300 );
 
-	giveArray( b.cols, b.rows, g );
-	drawBoard( b );
+		cleardevice( );
+
+		giveArray( b.cols, b.rows, g );
+		drawBoard( b );
+
+	}
 
 }//end initBoard
 
@@ -131,7 +123,7 @@ void drawBoard( Board &b ) {
 	int x1 = 100;
 	int y1 = 100;
 	int y2 = 500;
-	
+
 	int i = 0;
 
 	b.width = 200 / b.cols;
@@ -148,27 +140,32 @@ void drawBoard( Board &b ) {
 	for(i = 0; i < b.cols - 1; i++)
 	{
 		setcolor( DARKGRAY );
-		outtextxy(x1 + b.width,y1 - 20,itoa(i,buffer,10));
+		outtextxy(x1 + b.width,y1 - 20,itoa(i + 1,buffer,10));
 
 		setcolor( BLACK );
 		line(x1 += b.width, y1, x1 += b.width, y2);
 	}
 	setcolor( DARKGRAY );
-	outtextxy(x1 + b.width,y1 - 20,itoa(i,buffer,10));
+	outtextxy(x1 + b.width,y1 - 20,itoa(i + 1,buffer,10));
 
 	x1 = 100;
-	
+
 	// Rows
 	for(i = 0; i < b.rows - 1; i++)
 	{
 		setcolor( DARKGRAY );
-		outtextxy(x1 - 20 ,y1 + b.width,itoa(i,buffer,10));
+		outtextxy(x1 - 20 ,y1 + b.width,itoa(i + 1,buffer,10));
 
 		setcolor( BLACK );
 		line(x1 , y1 += b.width, y2, y1 += b.width);
 	}
 	setcolor( DARKGRAY );
-	outtextxy(x1 - 20 ,y1 + b.width,itoa(i,buffer,10));
+	outtextxy(x1 - 20 ,y1 + b.width,itoa(i + 1,buffer,10));
+
+	setcolor( BLUE );
+	rectangle(350,20,160,50);
+	setcolor( RED );
+	outtextxy(255,25,"Time :      /sec");
 
 }//end drawBoard
 
@@ -219,7 +216,7 @@ void fillMines( Board &b, gamePlay &g ) {
 
 	for(int i = 0; i < g.noOfMines; i++)
 	{
-	
+
 		int row = rand( ) % b.rows;
 		int col = rand( ) % b.cols;
 
@@ -256,37 +253,30 @@ void fillMines( Board &b, gamePlay &g ) {
 
 void calculateSurrounding( Board &b, gamePlay &g, int row, int col ) {
 
-	for( int i = 0; i < b.rows; i++ )
-    {
-        for( int j = 0; j < b.cols; j++ )
-        {
-            
-			if(i < 0 || i > b.rows - 1 || j < 0 || j > b.cols - 1 || ( i == row && j == col ) )
-                continue;
+	g.mineCounter = 0;
 
-			if( g.mine_sweeper[i][j] != 109 )
-				g.mine_sweeper[i][j]++;
-
-			cout << g.mine_sweeper[i][j] << " ";
-
-        }
-		cout << endl;
-    }
-
-	/*for(int i = 0; i < b.rows; i++)
+	for(int i = row - 1; i < row + 2; i++)
 	{
-		for(int j = 0; j < b.cols; j++)
+		for(int j = col - 1 ; j < col + 2; j++)
 		{
-			cout << g.mine_sweeper[i][j] << " ";
-		}
-		cout << endl;
-	}*/
 
+			if( i < 0 || i > b.rows - 1 || j < 0 || j > b.cols - 1 || (i == row && j == col))
+				continue;
+
+			if(g.mine_sweeper[ i ][ j ] != 0)
+				g.mineCounter++;
+
+		}
+	}
 }
 
 void takeValue( Board &b, gamePlay &g ) {
 
-	char buffer[10] = {'\0'};
+	int t = 0;
+	Time( g, t );
+
+	char buffer[3] = {'\0'};
+	char takeInput[3] = {'\0'};
 
 	// User input area
 	setcolor( CYAN );
@@ -294,12 +284,37 @@ void takeValue( Board &b, gamePlay &g ) {
 	rectangle(20,540,220,575);
 
 	outtextxy( 100 , 550, "Enter Row : ");
-	g.row = getch( ) - 48;
-	outtextxy( 180, 550, itoa(g.row,buffer,10));
-	//fillellipse( 180, 550, 180 + 5, 550 + 2);
+	//g.row = (getch( ) - 48) - 1 ;
+
+	takeInput[0] = getch();
+
+	if( kbhit() )
+	{
+
+		takeInput[1] = getch();
+		g.row = atoi(takeInput) - 1;
+
+	}
+	else
+		g.row = (takeInput[0] - 48) - 1;
+
+	outtextxy( 180, 550, itoa(g.row + 1,buffer,10));
 
 	outtextxy( 100 , 550, "Enter Col : ");
-	g.col = getch( ) - 48;
+	//g.col = ( getch( ) - 48 ) - 1;
+	
+	takeInput[0] = getch();
+
+	if( kbhit() )
+	{
+
+		takeInput[1] = getch();
+		g.col = atoi(takeInput) - 1;
+
+	}
+	else
+		g.col = (takeInput[0] - 48) - 1;
+
 	outtextxy( 180, 550, itoa(g.col,buffer,10));
 
 	getLocation( b, g );
@@ -309,7 +324,7 @@ void takeValue( Board &b, gamePlay &g ) {
 void getLocation( Board &b, gamePlay &g ) {
 
 	if ( g.mine_sweeper[g.row][g.col] == 109 ) {
-		
+
 		unCoverMines( b, g );
 
 	} else {
@@ -317,6 +332,7 @@ void getLocation( Board &b, gamePlay &g ) {
 		unCover( b, g , g.row, g.col);
 	}
 }//end getLocation
+
 
 void unCoverMines( Board &b, gamePlay &g ) {
 
@@ -328,14 +344,13 @@ void unCoverMines( Board &b, gamePlay &g ) {
 
 	for(int i = 0; i < g.noOfMines; i++)
 	{
+
 		newRow = y + ( ( b.width * 2 ) *  g.mines[0][i]  );
 		newCol = x + ( ( b.width * 2 ) *  g.mines[1][i] );
 
-		setcolor( RED );
+		setcolor( BLACK );
 		setfillstyle(SOLID_FILL, RED);
-		rectangle( newCol, newRow, newCol + (b.width * 2 ), newRow + ( b.width * 2 ) );
-		floodfill( newCol + 2, newRow + 2, RED );
-
+		floodfill( newCol + 2, newRow + 2, BLACK );
 
 		setcolor( BLACK );
 		setfillstyle(4, BLACK);
@@ -362,35 +377,109 @@ void unCover( Board &b, gamePlay &g, int row , int col ) {
 	int x = 100;
 	int y = 100;
 
-	int newRow = y + ( ( b.width * 2 ) *  row  );
-	int newCol = x + ( ( b.width * 2 ) *  col );
+	if( row < 0 || row >= b.rows || col < 0 || col >= b.cols || g.mine_sweeper[ row ][ col ] == 109 ) {
 
-	setcolor( RED );
-	setfillstyle(SOLID_FILL, RED);
-	//floodfill( newCol + 2, newRow + 2, RED );
+		return;
 
-	if( row < 0 || row >= b.rows || col< 0 || col >= b.cols ) {
+	} else {
 
-        return;
+		if( g.mine_sweeper[ row ][ col ] == 0)
+		{
 
-    } else {
+			calculateSurrounding( b, g, row, col );
 
-		if( g.mine_sweeper[ g.row ][ g.col ] == 0)
-        {
+			if( g.mineCounter == 0 )
+			{
 
-            unCover( b, g, row - 1, col );
+				int newRow = y + ( ( b.width * 2 ) *  row  );
+				int newCol = x + ( ( b.width * 2 ) *  col );
 
-			rectangle( newCol, newRow, newCol + (b.width * 2 ), newRow + ( b.width * 2 ) );
+				g.mine_sweeper [ row ][ col ] = g.mineCounter;
+				setfillstyle(SOLID_FILL, LIGHTGRAY);
+				floodfill( newCol + 2, newRow + 2, BLACK );
 
-            unCover( b, g, row, col - 1 );
-            unCover( b, g, row + 1, col );
-            unCover( b, g, row, col + 1 );
-            unCover( b, g, row + 1, col + 1 );
-            unCover( b, g, row - 1, col + 1 );
-            unCover( b, g, row - 1, col - 1 );
-            unCover( b, g, row + 1, col - 1 );
+			}
+			else if( g.mineCounter > 0 )
+			{
+				char buffer[3] = {'\0'};
+				int newRow = y + ( ( b.width * 2 ) *  row  );
+				int newCol = x + ( ( b.width * 2 ) *  col );
 
-        }
-    }
+				g.mine_sweeper [ row ][ col ] = g.mineCounter;
+				setfillstyle(SOLID_FILL, LIGHTGRAY);
+				floodfill( newCol + 2, newRow + 2, BLACK );
+				setcolor( BLUE );
+				outtextxy( newCol + b.width, newRow + (b.width - 7), itoa(g.mineCounter,buffer,10));
+
+			}
+
+		}
+
+		// Recursive Call
+		if( g.mineCounter == 0 )
+		{
+
+			unCover( b, g, row - 1, col );
+			unCover( b, g, row, col - 1 );
+			unCover( b, g, row + 1, col );
+			unCover( b, g, row, col + 1 );
+			unCover( b, g, row + 1, col + 1 );
+			unCover( b, g, row - 1, col + 1 );
+			unCover( b, g, row - 1, col - 1 );
+			unCover( b, g, row + 1, col - 1 );
+
+		}
+
+
+		/*if( g.mineCounter > 0 )
+		{
+		char buffer[3] = {'\0'};
+		int newRow = y + ( ( b.width * 2 ) *  row  );
+		int newCol = x + ( ( b.width * 2 ) *  col );
+
+		g.mine_sweeper [ row ][ col ] = g.mineCounter;
+		setfillstyle(SOLID_FILL, LIGHTGRAY);
+		floodfill( newCol + 2, newRow + 2, BLACK );
+		setcolor( BLUE );
+		outtextxy( newCol + b.width, newRow + (b.width - 7), itoa(g.mineCounter,buffer,10));
+
+		}*/
+	}
+
+	//debugging
+	for(int i = 0; i < b.rows; i++)
+	{
+		for(int j = 0; j < b.cols; j++)
+		{
+			cout << g.mine_sweeper[i][j] << " ";
+		}
+		cout << endl;
+	}
 
 }//end unCover
+
+
+int  Time ( gamePlay &g, int t )
+{
+
+	t = clock ( ) - t ; 
+
+	/*while(1) {*/
+
+	char buffer[10] = {'\0'};
+
+	int T  = clock ( ) ;
+	T /= CLOCKS_PER_SEC;
+
+	setcolor( WHITE );
+	settextjustify( 1, 2 );
+	settextstyle( 10, HORIZ_DIR, 2 );
+	outtextxy( 260, 25, itoa(T,buffer,10));
+	delay(200);
+
+
+	/*}*/
+
+	return t/CLOCKS_PER_SEC;
+
+}//time ends
