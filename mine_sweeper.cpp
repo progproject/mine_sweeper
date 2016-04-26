@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include "graphics.h"
 #include <time.h>
@@ -23,6 +24,7 @@ struct gamePlay {
 
 };
 
+void menu ( gamePlay &g, Board &b );
 void initBoard( Board &b, gamePlay &g );
 void drawBoard( Board &b );
 void giveArray( int cols, int rows, gamePlay &g );
@@ -34,6 +36,8 @@ void unCover( Board &b, gamePlay &g, int row, int col );
 void getLocation( Board &b, gamePlay &g );
 int  Time ( gamePlay &g, int t );
 
+int t;  //global
+
 int main( ) {
 
 	initwindow(600, 600, "Mine Sweeper");
@@ -41,7 +45,9 @@ int main( ) {
 	Board b;
 	gamePlay g;
 
-	initBoard( b, g );
+	t = clock( );
+	Time( g , t );
+	menu ( g , b );
 	fillMines( b, g );
 
 	while(1)
@@ -59,17 +65,70 @@ int main( ) {
 
 }//end main
 
+void menu( gamePlay &g , Board &b )
+{
+	char choice = 0;
+
+	//wall
+	setfillstyle(8,RED );
+	floodfill(350,350,WHITE);
+
+	//heading
+	setcolor( RED );
+	settextjustify( 1, 2 );
+	settextstyle( 10, HORIZ_DIR, 4 );
+	outtextxy( 300, 80, "MINE SWEEPER" );
+
+	//Menu
+	setcolor( RED );
+	settextjustify( 1, 1 );
+	settextstyle( 7, HORIZ_DIR, 4 );
+	outtextxy( 300, 300, " Press 1 to Play Game   " );
+	outtextxy( 300, 330, " Press 2 for High Score " );
+
+	while(!kbhit())
+	{
+		delay(200);
+	}
+
+	choice = getch();
+	cleardevice( );
+
+	switch(choice) {
+	case '1':
+		{
+			cleardevice ( );
+			initBoard( b , g );
+
+			break;
+		}
+	case '2':
+		{
+			//highscore
+		}
+	default:
+		{
+			menu ( g , b );
+		}
+
+	}//switch ends
+
+
+}//menu ends
+
 
 void initBoard( Board &b, gamePlay &g ) {
 
 	char buffer[10] = {'\0'};
 	char takeInput[3] = {'\0'};
 
+
+
 	// Take Rows from User
-	setcolor( BLUE );
+	setcolor( RED );
 	settextjustify( 1, 2 );
 	settextstyle( 10, HORIZ_DIR, 2 );
-	outtextxy( 280, 250, "Enter Number of Rows and Coloumns" );
+	outtextxy( 280, 250, "Enter Number for Rows and Coloumns" );
 
 	rectangle(170,300,400,350);
 
@@ -159,13 +218,10 @@ void drawBoard( Board &b ) {
 		setcolor( BLACK );
 		line(x1 , y1 += b.width, y2, y1 += b.width);
 	}
-	setcolor( DARKGRAY );
+	/*setcolor( DARKGRAY );
 	outtextxy(x1 - 20 ,y1 + b.width,itoa(i + 1,buffer,10));
 
-	setcolor( BLUE );
-	rectangle(350,20,160,50);
-	setcolor( RED );
-	outtextxy(255,25,"Time :      /sec");
+	*/;
 
 }//end drawBoard
 
@@ -272,9 +328,6 @@ void calculateSurrounding( Board &b, gamePlay &g, int row, int col ) {
 
 void takeValue( Board &b, gamePlay &g ) {
 
-	int t = 0;
-	Time( g, t );
-
 	char buffer[3] = {'\0'};
 	char takeInput[3] = {'\0'};
 
@@ -302,7 +355,7 @@ void takeValue( Board &b, gamePlay &g ) {
 
 	outtextxy( 100 , 550, "Enter Col : ");
 	//g.col = ( getch( ) - 48 ) - 1;
-	
+
 	takeInput[0] = getch();
 
 	if( kbhit() )
@@ -368,7 +421,23 @@ void unCoverMines( Board &b, gamePlay &g ) {
 	settextstyle( 10, HORIZ_DIR, 4 );
 	outtextxy( 300, 250, "GAME OVER" );
 
-	delay( 500 );
+	char buffer[10]={'\0'};
+	int T = Time (g,t);
+
+	setcolor( BLUE );
+	rectangle(170,50,500,80);
+	setcolor( RED );
+	settextjustify( 1, 2 );
+	settextstyle( 10, HORIZ_DIR, 2 );
+	outtextxy(320,55,"Time Escaped :      /sec");
+
+	setcolor( CYAN );
+	settextjustify( 1, 2 );
+	settextstyle( 10, HORIZ_DIR, 2 );
+	outtextxy( 370, 55, itoa(T,buffer,10));
+	delay(1000);
+	cleardevice();
+	menu(g,b);
 
 }//end unCoverMines
 
@@ -461,25 +530,14 @@ void unCover( Board &b, gamePlay &g, int row , int col ) {
 
 int  Time ( gamePlay &g, int t )
 {
-
-	t = clock ( ) - t ; 
-
-	/*while(1) {*/
-
 	char buffer[10] = {'\0'};
 
-	int T  = clock ( ) ;
+	int T  = clock ( ) - t ;
 	T /= CLOCKS_PER_SEC;
 
-	setcolor( WHITE );
-	settextjustify( 1, 2 );
-	settextstyle( 10, HORIZ_DIR, 2 );
-	outtextxy( 260, 25, itoa(T,buffer,10));
-	delay(200);
-
-
-	/*}*/
-
-	return t/CLOCKS_PER_SEC;
+	return T;
 
 }//time ends
+
+
+
