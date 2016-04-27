@@ -35,8 +35,25 @@ void unCoverMines( Board &b, gamePlay &g );
 void unCover( Board &b, gamePlay &g, int row, int col );
 void getLocation( Board &b, gamePlay &g );
 int  Time ( gamePlay &g, int t );
+void loadScore();
 
 int t;  //global
+
+void gameEngine( Board &b, gamePlay &g)
+{
+
+	initBoard( b , g );
+	Time( g , t );
+	//loadScore();
+	fillMines( b, g );
+
+	t = clock( );
+	while(1)
+	{
+		takeValue( b, g );
+	}
+
+}
 
 int main( ) {
 
@@ -45,15 +62,7 @@ int main( ) {
 	Board b;
 	gamePlay g;
 
-	t = clock( );
-	Time( g , t );
-	menu ( g , b );
-	fillMines( b, g );
-
-	while(1)
-	{
-		takeValue( b, g );
-	}
+	menu( g, b);
 
 	while (!kbhit( ))
 	{
@@ -98,7 +107,8 @@ void menu( gamePlay &g , Board &b )
 	case '1':
 		{
 			cleardevice ( );
-			initBoard( b , g );
+
+			gameEngine( b, g );
 
 			break;
 		}
@@ -334,7 +344,7 @@ void takeValue( Board &b, gamePlay &g ) {
 	// User input area
 	setcolor( CYAN );
 
-	rectangle(20,540,220,575);
+	//rectangle(20,540,220,575);
 
 	outtextxy( 100 , 550, "Enter Row : ");
 	//g.row = (getch( ) - 48) - 1 ;
@@ -353,7 +363,7 @@ void takeValue( Board &b, gamePlay &g ) {
 
 	outtextxy( 180, 550, itoa(g.row + 1,buffer,10));
 
-	outtextxy( 100 , 550, "Enter Col : ");
+	outtextxy( 400 , 550, "Enter Col : ");
 	//g.col = ( getch( ) - 48 ) - 1;
 
 	takeInput[0] = getch();
@@ -368,7 +378,7 @@ void takeValue( Board &b, gamePlay &g ) {
 	else
 		g.col = (takeInput[0] - 48) - 1;
 
-	outtextxy( 180, 550, itoa(g.col,buffer,10));
+	outtextxy( 480, 550, itoa(g.col + 1 ,buffer,10));
 
 	getLocation( b, g );
 
@@ -499,20 +509,6 @@ void unCover( Board &b, gamePlay &g, int row , int col ) {
 
 		}
 
-
-		/*if( g.mineCounter > 0 )
-		{
-		char buffer[3] = {'\0'};
-		int newRow = y + ( ( b.width * 2 ) *  row  );
-		int newCol = x + ( ( b.width * 2 ) *  col );
-
-		g.mine_sweeper [ row ][ col ] = g.mineCounter;
-		setfillstyle(SOLID_FILL, LIGHTGRAY);
-		floodfill( newCol + 2, newRow + 2, BLACK );
-		setcolor( BLUE );
-		outtextxy( newCol + b.width, newRow + (b.width - 7), itoa(g.mineCounter,buffer,10));
-
-		}*/
 	}
 
 	//debugging
@@ -539,5 +535,36 @@ int  Time ( gamePlay &g, int t )
 
 }//time ends
 
+void loadScore()
+{
 
+	int score[5] = {0};
+	char * buffer = NULL;
 
+	FILE * fp = fopen( "score.txt", "r" );
+
+	if(fp == NULL)
+	{
+		cout << "File not found" << endl;
+		exit(1);
+	}
+
+	while(!feof(fp))
+	{
+		for(int i = 0; i < 5; i++)
+		{
+			fscanf(fp,"%s",&score[i]);
+		}
+	}
+
+}
+
+void saveScore(gamePlay &g)
+{
+
+	int time = Time ( g, t );
+
+	FILE * fp = fopen( "score.txt", "a" );
+	fprintf(fp,"%d\n",time);
+
+}
