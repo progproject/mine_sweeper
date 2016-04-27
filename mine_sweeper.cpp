@@ -1,7 +1,12 @@
-
+/*
+  PT ASSIGHNMENT 2
+  Submitted by : Arslan Kirmani ( 041 ), Waleed Ahmed ( 058 )
+  Submitted to : Sami Ullah Kashif
+*/
 #include <iostream>
-#include "graphics.h"
 #include <time.h>
+#include <iomanip>
+#include "graphics.h"
 
 using namespace std;
 
@@ -35,22 +40,25 @@ void unCoverMines( Board &b, gamePlay &g );
 void unCover( Board &b, gamePlay &g, int row, int col );
 void getLocation( Board &b, gamePlay &g );
 int  Time ( gamePlay &g, int t );
-void loadScore();
+int  *loadScore();
+void showHighScore();
+void saveScore( Board &b, gamePlay &g );
 
-int t;  //global
+//Global Vairable
+int t;
 
 void gameEngine( Board &b, gamePlay &g)
 {
 
 	initBoard( b , g );
-	Time( g , t );
 	//loadScore();
 	fillMines( b, g );
+	Time( g , t );
 
-	t = clock( );
 	while(1)
 	{
 		takeValue( b, g );
+		saveScore( b, g );
 	}
 
 }
@@ -108,6 +116,7 @@ void menu( gamePlay &g , Board &b )
 		{
 			cleardevice ( );
 
+			t = clock( );
 			gameEngine( b, g );
 
 			break;
@@ -145,7 +154,7 @@ void initBoard( Board &b, gamePlay &g ) {
 	kbhit();
 	takeInput[0] = getch();
 
-	if( kbhit() )
+	if( !kbhit() )
 	{
 
 		takeInput[1] = getch();
@@ -228,10 +237,8 @@ void drawBoard( Board &b ) {
 		setcolor( BLACK );
 		line(x1 , y1 += b.width, y2, y1 += b.width);
 	}
-	/*setcolor( DARKGRAY );
+	setcolor( DARKGRAY );
 	outtextxy(x1 - 20 ,y1 + b.width,itoa(i + 1,buffer,10));
-
-	*/;
 
 }//end drawBoard
 
@@ -254,8 +261,7 @@ void giveArray( int cols, int rows, gamePlay &g ) {
 		g.mines[i] = new int[ g.noOfMines ];
 	}
 
-	//memset(g.mine_sweeper,0, ( rows * cols ) * sizeof( *g.mine_sweeper ) );
-
+	//Initialize arrays
 	for(int i = 0; i < rows; i++)
 	{
 		for(int j = 0; j < cols; j++)
@@ -297,7 +303,7 @@ void fillMines( Board &b, gamePlay &g ) {
 	{
 		for(int j = 0; j < b.cols; j++)
 		{
-			cout << g.mine_sweeper[i][j] << " ";
+			cout << setw( 3 ) << g.mine_sweeper[i][j] << " ";
 		}
 		cout << endl;
 	}
@@ -315,7 +321,7 @@ void fillMines( Board &b, gamePlay &g ) {
 	}
 	cout << endl;
 
-}
+}//end fillMines
 
 void calculateSurrounding( Board &b, gamePlay &g, int row, int col ) {
 
@@ -326,15 +332,15 @@ void calculateSurrounding( Board &b, gamePlay &g, int row, int col ) {
 		for(int j = col - 1 ; j < col + 2; j++)
 		{
 
-			if( i < 0 || i > b.rows - 1 || j < 0 || j > b.cols - 1 || (i == row && j == col))
+			if( i <= 0 || i > b.rows - 1 || j <= 0 || j > b.cols - 1 || (i == row && j == col))
 				continue;
 
-			if(g.mine_sweeper[ i ][ j ] != 0)
+			if(g.mine_sweeper[ i ][ j ] == 109)
 				g.mineCounter++;
 
 		}
 	}
-}
+}//end calculateSurrounding
 
 void takeValue( Board &b, gamePlay &g ) {
 
@@ -351,7 +357,7 @@ void takeValue( Board &b, gamePlay &g ) {
 
 	takeInput[0] = getch();
 
-	if( kbhit() )
+	if( !kbhit() )
 	{
 
 		takeInput[1] = getch();
@@ -368,7 +374,7 @@ void takeValue( Board &b, gamePlay &g ) {
 
 	takeInput[0] = getch();
 
-	if( kbhit() )
+	if( !kbhit() )
 	{
 
 		takeInput[1] = getch();
@@ -431,9 +437,11 @@ void unCoverMines( Board &b, gamePlay &g ) {
 	settextstyle( 10, HORIZ_DIR, 4 );
 	outtextxy( 300, 250, "GAME OVER" );
 
+	// TIME
 	char buffer[10]={'\0'};
 	int T = Time (g,t);
 
+	
 	setcolor( BLUE );
 	rectangle(170,50,500,80);
 	setcolor( RED );
@@ -456,7 +464,7 @@ void unCover( Board &b, gamePlay &g, int row , int col ) {
 	int x = 100;
 	int y = 100;
 
-	if( row < 0 || row >= b.rows || col < 0 || col >= b.cols || g.mine_sweeper[ row ][ col ] == 109 ) {
+	if( row <= 0 || row > b.rows || col <= 0 || col > b.cols || g.mine_sweeper[ row ][ col ] == 109 ) {
 
 		return;
 
@@ -477,6 +485,15 @@ void unCover( Board &b, gamePlay &g, int row , int col ) {
 				setfillstyle(SOLID_FILL, LIGHTGRAY);
 				floodfill( newCol + 2, newRow + 2, BLACK );
 
+				unCover( b, g, row - 1, col );
+				unCover( b, g, row, col - 1 );
+				unCover( b, g, row + 1, col );
+				unCover( b, g, row, col + 1 );
+				unCover( b, g, row + 1, col + 1 );
+				unCover( b, g, row - 1, col + 1 );
+				unCover( b, g, row - 1, col - 1 );
+				unCover( b, g, row + 1, col - 1 );
+
 			}
 			else if( g.mineCounter > 0 )
 			{
@@ -495,7 +512,7 @@ void unCover( Board &b, gamePlay &g, int row , int col ) {
 		}
 
 		// Recursive Call
-		if( g.mineCounter == 0 )
+		/*if( g.mineCounter == 0 )
 		{
 
 			unCover( b, g, row - 1, col );
@@ -507,19 +524,19 @@ void unCover( Board &b, gamePlay &g, int row , int col ) {
 			unCover( b, g, row - 1, col - 1 );
 			unCover( b, g, row + 1, col - 1 );
 
-		}
+		}*/
 
 	}
 
-	//debugging
-	for(int i = 0; i < b.rows; i++)
-	{
-		for(int j = 0; j < b.cols; j++)
-		{
-			cout << g.mine_sweeper[i][j] << " ";
-		}
-		cout << endl;
-	}
+	////debugging
+	//for(int i = 0; i < b.rows; i++)
+	//{
+	//	for(int j = 0; j < b.cols; j++)
+	//	{
+	//		cout << g.mine_sweeper[i][j] << " ";
+	//	}
+	//	cout << endl;
+	//}
 
 }//end unCover
 
@@ -535,11 +552,11 @@ int  Time ( gamePlay &g, int t )
 
 }//time ends
 
-void loadScore()
+int *loadScore()
 {
 
 	int score[5] = {0};
-	char * buffer = NULL;
+	int * scores = score;
 
 	FILE * fp = fopen( "score.txt", "r" );
 
@@ -557,14 +574,61 @@ void loadScore()
 		}
 	}
 
-}
+	return score;
 
-void saveScore(gamePlay &g)
+}//end loadScore
+
+void saveScore( Board &b, gamePlay &g )
 {
 
+	int gameCheck = 0;
 	int time = Time ( g, t );
 
-	FILE * fp = fopen( "score.txt", "a" );
-	fprintf(fp,"%d\n",time);
+	for(int i = 0; i < b.rows ; i++)
+	{
+		for(int j = 0; j < b.cols; j++)
+		{
 
-}
+			if(g.mine_sweeper[i][j] != 0 && g.mine_sweeper[i][j] != 109)
+			{
+				gameCheck++;
+			}
+			
+		}
+	}
+
+	if( gameCheck == (b.rows * b.cols) - b.rows)
+	{
+
+		FILE * fp;
+
+		if(fp == NULL)
+		{
+			fp = fopen( "score.txt", "w" );
+		}
+		else
+			fp = fopen( "score.txt", "a" );
+
+		fprintf(fp,"%d\n",time);
+
+		delay(300);
+
+		cleardevice();
+
+		menu(g,b);
+
+	}
+
+}//end saveScore
+
+void showHighScore( )
+{
+
+	int * score = loadScore();
+
+	for(int i = 0; i < 5; i++)
+	{
+		cout << i <<" :" << score[i] << endl;
+	}
+
+}//end showHighScore
